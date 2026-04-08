@@ -43,19 +43,15 @@ class SplunkOnCallClient:
         """
         if self._read_only is not None:
             return self._read_only
-        try:
-            resp = await self._client.request(
-                "POST", "/v1/incidents/resolve", json={"userName": "", "incidentNames": []},
-            )
-            # 400 = key has write access, body was just invalid
-            # 200 = key has write access and somehow succeeded
+        resp = await self._client.request(
+            "POST", "/v1/incidents/resolve", json={"userName": "", "incidentNames": []},
+        )
+        if resp.status_code == 403:
+            self._read_only = True
+        else:
+            # 400 = key has write access but body was invalid
+            # 200 = key has write access and succeeded
             self._read_only = False
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 403:
-                self._read_only = True
-            else:
-                # Some other error; assume full access
-                self._read_only = False
         return self._read_only
 
     @property

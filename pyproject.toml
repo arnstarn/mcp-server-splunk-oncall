@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcp-server-splunk-oncall"
-version = "0.2.3"
+version = "0.3.0"
 description = "MCP server for Splunk On-Call (VictorOps) incident management"
 readme = "README.md"
 license = "MIT"
@@ -23,6 +23,15 @@ dependencies = [
     "httpx>=0.27.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "respx>=0.21.0",
+]
+
 [project.scripts]
 mcp-server-splunk-oncall = "mcp_server_splunk_oncall.server:main"
 
@@ -30,3 +39,7 @@ mcp-server-splunk-oncall = "mcp_server_splunk_oncall.server:main"
 Homepage = "https://github.com/arnstarn/mcp-server-splunk-oncall"
 Repository = "https://github.com/arnstarn/mcp-server-splunk-oncall"
 Issues = "https://github.com/arnstarn/mcp-server-splunk-oncall/issues"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
