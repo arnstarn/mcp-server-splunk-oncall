@@ -44,6 +44,14 @@ Add to your Claude Code MCP settings:
 
 The server automatically detects whether the API key is read-only or full-access on first use. When a read-only key is provided, write operations return a clear error message instead of failing with a 403. Use `get_access_mode` to check.
 
+You can also force read-only mode with a full-access key by setting:
+
+```
+"SPLUNK_ONCALL_READ_ONLY": "true"
+```
+
+This is useful when you want to use a full-access key but prevent accidental writes (e.g. a monitoring-only MCP instance).
+
 ## Available Tools (45 total)
 
 ### Access

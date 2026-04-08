@@ -16,6 +16,9 @@ mcp = FastMCP(
 
 _client: SplunkOnCallClient | None = None
 _access_detected: bool = False
+_force_read_only: bool = os.environ.get("SPLUNK_ONCALL_READ_ONLY", "").lower() in (
+    "1", "true", "yes",
+)
 
 
 def _get_client() -> SplunkOnCallClient:
@@ -28,19 +31,27 @@ def _get_client() -> SplunkOnCallClient:
                 "SPLUNK_ONCALL_API_ID and SPLUNK_ONCALL_API_KEY environment variables are required"
             )
         _client = SplunkOnCallClient(api_id, api_key)
+        if _force_read_only:
+            _client._read_only = True
     return _client
 
 
 async def _ensure_access_detected() -> None:
     global _access_detected
     if not _access_detected:
-        await _get_client().detect_access_mode()
+        if not _force_read_only:
+            await _get_client().detect_access_mode()
         _access_detected = True
 
 
 def _require_write(action: str) -> str | None:
     """Return an error message if the key is read-only, None if write is allowed."""
     client = _get_client()
+    if _force_read_only:
+        return (
+            f"Cannot {action}: server is running in read-only mode "
+            f"(SPLUNK_ONCALL_READ_ONLY=true). Restart with a writable configuration."
+        )
     if client.is_read_only:
         return (
             f"Cannot {action}: current API key is read-only. "
@@ -58,10 +69,15 @@ def _fmt(data: dict) -> str:
 
 @mcp.tool()
 async def get_access_mode() -> str:
-    """Check whether the current API key has full or read-only access."""
+    """Check whether the server is running in full-access or read-only mode."""
     await _ensure_access_detected()
     client = _get_client()
-    mode = "read-only" if client.is_read_only else "full-access"
+    if _force_read_only:
+        mode = "read-only (forced via SPLUNK_ONCALL_READ_ONLY)"
+    elif client.is_read_only:
+        mode = "read-only (detected from API key)"
+    else:
+        mode = "full-access"
     return json.dumps({"access_mode": mode})
 
 
