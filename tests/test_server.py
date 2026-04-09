@@ -59,6 +59,9 @@ async def test_list_incidents():
     respx.post("https://api.victorops.com/api-public/v1/incidents/resolve").mock(
         return_value=Response(403)
     )
+    respx.get("https://api.victorops.com/api-public/v2/incidents").mock(
+        return_value=Response(404)
+    )
     respx.get("https://api.victorops.com/api-public/v1/incidents").mock(
         return_value=Response(200, json={"incidents": []})
     )

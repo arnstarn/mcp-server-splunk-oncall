@@ -33,6 +33,16 @@ class SplunkOnCallClient:
         resp.raise_for_status()
         return resp.json()
 
+    async def _request_with_fallback(
+        self, method: str, v2_path: str, v1_path: str, **kwargs,
+    ) -> dict:
+        """Try v2 endpoint first, fall back to v1 if v2 returns 404."""
+        resp = await self._client.request(method, v2_path, **kwargs)
+        if resp.status_code == 404:
+            resp = await self._client.request(method, v1_path, **kwargs)
+        resp.raise_for_status()
+        return resp.json()
+
     async def detect_access_mode(self) -> bool:
         """Detect whether the API key is read-only.
 
@@ -61,7 +71,7 @@ class SplunkOnCallClient:
     # -- Incidents --
 
     async def list_incidents(self) -> dict:
-        return await self._request("GET", "/v1/incidents")
+        return await self._request_with_fallback("GET", "/v2/incidents", "/v1/incidents")
 
     async def acknowledge_incidents(
         self, user_name: str, incident_names: list[str], message: str | None = None,
@@ -278,7 +288,9 @@ class SplunkOnCallClient:
             params["startedAfter"] = start
         if end:
             params["startedBefore"] = end
-        return await self._request("GET", "/v1/incidents", params=params)
+        return await self._request_with_fallback(
+            "GET", "/v2/reporting/incidents", "/v1/incidents", params=params,
+        )
 
     async def get_oncall_report(
         self, team_slug: str, start: str | None = None, end: str | None = None,
@@ -295,4 +307,4 @@ class SplunkOnCallClient:
     # -- Alerts --
 
     async def list_alerts(self) -> dict:
-        return await self._request("GET", "/v1/incidents")
+        return await self._request_with_fallback("GET", "/v2/alerts", "/v1/incidents")
