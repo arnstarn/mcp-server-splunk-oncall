@@ -61,7 +61,7 @@ class SplunkOnCallClient:
     # -- Incidents --
 
     async def list_incidents(self) -> dict:
-        return await self._request("GET", "/v2/incidents")
+        return await self._request("GET", "/v1/incidents")
 
     async def acknowledge_incidents(
         self, user_name: str, incident_names: list[str], message: str | None = None,
@@ -278,7 +278,7 @@ class SplunkOnCallClient:
             params["startedAfter"] = start
         if end:
             params["startedBefore"] = end
-        return await self._request("GET", "/v2/reporting/incidents", params=params)
+        return await self._request("GET", "/v1/incidents", params=params)
 
     async def get_oncall_report(
         self, team_slug: str, start: str | None = None, end: str | None = None,
@@ -295,4 +295,4 @@ class SplunkOnCallClient:
     # -- Alerts --
 
     async def list_alerts(self) -> dict:
-        return await self._request("GET", "/v2/alerts")
+        return await self._request("GET", "/v1/incidents")
