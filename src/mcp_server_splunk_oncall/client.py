@@ -308,3 +308,6 @@ class SplunkOnCallClient:
 
     async def list_alerts(self) -> dict:
         return await self._request_with_fallback("GET", "/v2/alerts", "/v1/incidents")
+
+    async def get_alert(self, uuid: str) -> dict:
+        return await self._request("GET", f"/v1/alerts/{uuid}")

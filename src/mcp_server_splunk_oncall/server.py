@@ -193,8 +193,12 @@ async def reroute_incidents(
 async def get_incident_timeline(incident_number: str) -> str:
     """Get the event timeline for a specific incident.
 
+    Note: This expects an incident number (small number assigned by VictorOps),
+    NOT an alert number. If you have an alert number (large number like 739914),
+    use get_alert first to find the associated incident number.
+
     Args:
-        incident_number: The incident number to get the timeline for
+        incident_number: The VictorOps incident number (e.g. "42")
     """
     await _ensure_access_detected()
     result = await _get_client().get_incident_timeline(incident_number)
@@ -662,6 +666,18 @@ async def list_alerts() -> str:
     """List recent alerts."""
     await _ensure_access_detected()
     result = await _get_client().list_alerts()
+    return _fmt(result)
+
+
+@mcp.tool()
+async def get_alert(uuid: str) -> str:
+    """Get details for a specific alert by its UUID.
+
+    Args:
+        uuid: The alert UUID (e.g. "739914" or a full UUID string)
+    """
+    await _ensure_access_detected()
+    result = await _get_client().get_alert(uuid)
     return _fmt(result)
 
 
